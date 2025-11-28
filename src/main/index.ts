@@ -53,7 +53,8 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.on('testing',(event,payload) => {
+  ipcMain.on('start-focus-mode',(event,payload) => {
+    console.log("start fsoocus mode signal activated yuhh")
     const win = BrowserWindow.fromWebContents(event.sender);
     if(win==null){
       return;
@@ -65,7 +66,7 @@ app.whenReady().then(() => {
     const screenHeight = display.workAreaSize.height;
     const x = screenWidth - windowWidth;
     const y = screenHeight - windowHeight;
-    win.setBounds(x,y,windowHeight,windowWidth);
+    win.setBounds({ x: x, y: y, width: windowWidth, height: windowHeight });
     win.setAlwaysOnTop(true,"screen-saver");
 
 
