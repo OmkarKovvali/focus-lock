@@ -74,6 +74,26 @@ app.whenReady().then(() => {
 
   });
 
+  ipcMain.on('end-focus-mode',(event) =>{
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win) return;
+
+    const width = 900;
+    const height = 670;
+    const display = screen.getPrimaryDisplay();
+    const { width: screenWidth, height: screenHeight } = display.workAreaSize;
+
+    // Calculate center position
+    const x = Math.round((screenWidth - width) / 2);
+    const y = Math.round((screenHeight - height) / 2);
+
+    win.setBounds({ x, y, width, height });
+    win.setAlwaysOnTop(false);
+    win.center();
+
+
+  });
+
   createWindow()
 
   app.on('activate', function () {

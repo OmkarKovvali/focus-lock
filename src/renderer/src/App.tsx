@@ -29,7 +29,11 @@ function App(): React.JSX.Element {
       },1000);
     }
     else if(timeLeft===0 && isFocusing){
-      setIsFocusing(false)
+      console.log("Time Runs Out");
+      setIsFocusing(false);
+      window.electron.ipcRenderer.send('end-focus-mode');
+      setTimeLeft(0);
+      
       //ALSO NEED TO EXPAND WINDOW AGAIN HERE!
     }
     //cleanup function here basically ensure only 1 timer at once
@@ -41,14 +45,21 @@ function App(): React.JSX.Element {
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`; 
   }
+  const handleExit = () =>{
+    setIsFocusing(false);
+    setTimeLeft(0);
+    window.electron.ipcRenderer.send('end-focus-mode');
+  }
 
   return (
     <>
     <h1>Manual Overlord</h1>
+    
     {isFocusing ? (
       <div>
-        <h2>Time Remaining: {formatTime(timeLeft)}:00</h2>
+        <h2>Time Remaining: {formatTime(timeLeft)}</h2>
         <p>Focusing on: {task}</p>
+        <button onClick={handleExit}>Stop and Exit</button>
       </div>
     ):(
       <form onSubmit={handleSubmit}>
