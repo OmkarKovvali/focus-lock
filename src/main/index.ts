@@ -1,8 +1,9 @@
-import { app, shell,screen, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, screen, BrowserWindow, ipcMain, desktopCapturer } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 
+let focusInterval: NodeJS.Timeout | null = null;
 
 function createWindow(): void {
   // Create the browser window.
@@ -13,10 +14,14 @@ function createWindow(): void {
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
   })
+
+
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -69,6 +74,25 @@ app.whenReady().then(() => {
     win.setBounds({ x: x, y: y, width: windowWidth, height: windowHeight });
     win.setAlwaysOnTop(true,"screen-saver");
 
+    if (focusInterval) clearInterval(focusInterval);
+
+      focusInterval = setInterval(async () => {
+      console.log("Taking a screenshot...");
+
+      const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width: 1920, height: 1080 }
+    });
+
+    const primarySource = sources[0];
+
+    if (primarySource) {
+      const imageBase64 = primarySource.thumbnail.toDataURL();
+      console.log("Yessir we screengrabbed, Len is", imageBase64.length);
+    }
+
+    }, 3000);
+
 
 
 
@@ -90,6 +114,11 @@ app.whenReady().then(() => {
     win.setBounds({ x, y, width, height });
     win.setAlwaysOnTop(false);
     win.center();
+
+    if (focusInterval){
+      clearInterval(focusInterval);
+      focusInterval = null;
+    }
 
 
   });
