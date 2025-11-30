@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import OpenAI from "openai";
+import 'dotenv/config'
 
 const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
 
@@ -63,9 +64,10 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.on('start-focus-mode',(event,payload) => {
+  ipcMain.on('start-focus-mode',(event,duration, task) => {
     console.log("start fsoocus mode signal activated yuhh")
-    const currentTask = payload;
+    console.log("Start focus mode:", duration, task);
+    const currentTask = task;
     const win = BrowserWindow.fromWebContents(event.sender);
     if(win==null){
       return;
@@ -102,7 +104,7 @@ app.whenReady().then(() => {
               {
                 role: "user",
                 content: [
-                  { type: "text", text: `The user wants to focus on: "${currentTask}". Is the screen content consistent with this task? Reply YES or NO.` },
+                  { type: "text", text: `The user wants to focus on: "${currentTask}". Is the screen content consistent with this task? Reply YES or NO` },
                   {
                     type: "image_url",
                     image_url: {
@@ -115,11 +117,11 @@ app.whenReady().then(() => {
             max_tokens: 10, // We only need a short YES/NO
           });
         
-          const result = response.choices[0].message.content;
-          console.log("AI Verdict:", result);
+          const gpt_response = response.choices[0].message.content;
+          console.log("AI Verdict:", gpt_response);
         
         } catch (error) {
-          console.error("OpenAI Error:", error);
+          console.error("OpenAI messed something up", error);
         }
 
         console.log("Yessir we screengrabbed, Len is", imageBase64.length);
@@ -127,7 +129,7 @@ app.whenReady().then(() => {
 
       
 
-    }, 3000);
+    }, 30000);
 
 
 
