@@ -2,6 +2,11 @@ import { app, shell, screen, BrowserWindow, ipcMain, desktopCapturer } from 'ele
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import OpenAI from "openai";
+
+const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+
+
 
 let focusInterval: NodeJS.Timeout | null = null;
 
@@ -60,6 +65,7 @@ app.whenReady().then(() => {
 
   ipcMain.on('start-focus-mode',(event,payload) => {
     console.log("start fsoocus mode signal activated yuhh")
+    const currentTask = payload;
     const win = BrowserWindow.fromWebContents(event.sender);
     if(win==null){
       return;
@@ -76,20 +82,50 @@ app.whenReady().then(() => {
 
     if (focusInterval) clearInterval(focusInterval);
 
-      focusInterval = setInterval(async () => {
+    focusInterval = setInterval(async () => {
       console.log("Taking a screenshot...");
 
       const sources = await desktopCapturer.getSources({
       types: ['screen'],
       thumbnailSize: { width: 1920, height: 1080 }
-    });
+      });
 
-    const primarySource = sources[0];
+      const primarySource = sources[0];
 
-    if (primarySource) {
-      const imageBase64 = primarySource.thumbnail.toDataURL();
-      console.log("Yessir we screengrabbed, Len is", imageBase64.length);
-    }
+      if (primarySource) {
+        const imageBase64 = primarySource.thumbnail.toDataURL();
+
+        try {
+          const response = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: `The user wants to focus on: "${currentTask}". Is the screen content consistent with this task? Reply YES or NO.` },
+                  {
+                    type: "image_url",
+                    image_url: {
+                      url: imageBase64, // Pass the base64 string here
+                    },
+                  },
+                ],
+              },
+            ],
+            max_tokens: 10, // We only need a short YES/NO
+          });
+        
+          const result = response.choices[0].message.content;
+          console.log("AI Verdict:", result);
+        
+        } catch (error) {
+          console.error("OpenAI Error:", error);
+        }
+
+        console.log("Yessir we screengrabbed, Len is", imageBase64.length);
+      }
+
+      
 
     }, 3000);
 
