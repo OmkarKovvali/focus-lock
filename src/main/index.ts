@@ -119,6 +119,11 @@ app.whenReady().then(() => {
         
           const gpt_response = response.choices[0].message.content;
           console.log("AI Verdict:", gpt_response);
+
+          if(gpt_response?.toUpperCase().includes("NO"))
+            win.setKiosk(true);
+            win.setAlwaysOnTop(true,"screen-saver");
+            win.webContents.send('lock-screen-trigger');
         
         } catch (error) {
           console.error("OpenAI messed something up", error);

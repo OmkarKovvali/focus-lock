@@ -9,6 +9,7 @@ function App(): React.JSX.Element {
   const[task,setTask] = useState<string>('');
   const [isFocusing,setIsFocusing] = useState<boolean>(false);
   const [timeLeft,setTimeLeft] = useState<number>(0);
+  const [isLocked,setIsLocked] = useState<boolean>(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -40,6 +41,16 @@ function App(): React.JSX.Element {
     return () => clearInterval(interval);
   },[isFocusing,timeLeft]);
 
+  useEffect(()=>{
+    const reset = window.electron.ipcRenderer.on('lock-screen-trigger',() => {
+      setIsLocked(true);
+      setIsFocusing(false);
+    });
+    return() => {
+      //possible cleanup might be needed, not sure if this needs to be done here.
+    }
+  },[])
+
   const formatTime = (seconds:number) => {
     const mins = Math.floor(seconds/60);
     const secs = seconds % 60;
@@ -49,6 +60,26 @@ function App(): React.JSX.Element {
     setIsFocusing(false);
     setTimeLeft(0);
     window.electron.ipcRenderer.send('end-focus-mode');
+  }
+
+  if (isLocked) {
+    return (
+      <div style={{
+        height: '100vh',
+        width: '100vw',
+        backgroundColor: 'black',
+        color: 'red',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 9999
+      }}>
+        <h1 style={{ fontSize: '5rem' }}>LOCKED</h1>
+        <p>POKE HAS BEEN NOTIFIED.</p>
+        <p>Explain yourself to the Judge to unlock.</p>
+      </div>
+    );
   }
 
   return (
