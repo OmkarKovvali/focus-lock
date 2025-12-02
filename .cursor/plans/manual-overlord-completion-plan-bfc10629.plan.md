@@ -1,5 +1,4 @@
 <!-- bfc10629-d19f-477f-a137-49871118cf3c 79948982-4d10-4cf0-a033-6e5fe1f20d16 -->
-
 # Manual Overlord Completion Plan
 
 This plan breaks down the remaining work into three distinct phases: The "Eye" (Vision), The "Jail" (Lockout), and The "Judge" (Poke/MCP).
@@ -13,7 +12,7 @@ This plan breaks down the remaining work into three distinct phases: The "Eye" (
 
 - [x] **Screen Capture**: Use Electron's `desktopCapturer` in the Main process to take a snapshot of the screen every 60 seconds.
 - [x] **OpenAI Integration**: Send the snapshot + the user's `task` string to GPT-4o.
-- _Prompt:_ "The user said they would do '{task}'. Is this screen content consistent with that task? Reply YES or NO."
+- *Prompt:* "The user said they would do '{task}'. Is this screen content consistent with that task? Reply YES or NO."
 - [x] **Off-Task Trigger**: If GPT-4o says "NO", trigger the Lockout phase.
 - [x] **Fix Env Vars**: Ensure `.env` is properly loaded and ignored.
 
@@ -32,9 +31,9 @@ This plan breaks down the remaining work into three distinct phases: The "Eye" (
 - [ ] **Build Server**: Create a simple Python/FastAPI server.
 - **Database**: Simple in-memory or SQLite to store `{ user_id, locked_status, offense_count }`.
 - **Endpoints**:
-  - `POST /report_offense`: Called by Electron when user is bad. Increments `offense_count`, sets `locked=true`.
-  - `GET /status`: Called by Electron to check if allowed to unlock.
-  - `POST /unlock`: Called by Poke (via MCP tool) to set `locked=false`.
+- `POST /report_offense`: Called by Electron when user is bad. Increments `offense_count`, sets `locked=true`.
+- `GET /status`: Called by Electron to check if allowed to unlock.
+- `POST /unlock`: Called by Poke (via MCP tool) to set `locked=false`.
 - [ ] **Deploy**: Deploy to Render (free tier).
 
 ### 3.3 Social Accountability (The "Judge")
