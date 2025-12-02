@@ -2,14 +2,12 @@ import { app, shell, screen, BrowserWindow, ipcMain, desktopCapturer } from 'ele
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import OpenAI from "openai";
+import OpenAI from 'openai'
 import 'dotenv/config'
 
-const client = new OpenAI({apiKey: process.env.OPENAI_API_KEY});
+const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-
-
-let focusInterval: NodeJS.Timeout | null = null;
+let focusInterval: NodeJS.Timeout | null = null
 
 function createWindow(): void {
   // Create the browser window.
@@ -26,8 +24,6 @@ function createWindow(): void {
       sandbox: false
     }
   })
-
-
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
@@ -64,107 +60,99 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.on('start-focus-mode',(event,duration, task) => {
-    console.log("start fsoocus mode signal activated yuhh")
-    console.log("Start focus mode:", duration, task);
-    const currentTask = task;
-    const win = BrowserWindow.fromWebContents(event.sender);
-    if(win==null){
-      return;
+  ipcMain.on('start-focus-mode', (event, duration, task) => {
+    console.log('start fsoocus mode signal activated yuhh')
+    console.log('Start focus mode:', duration, task)
+    const currentTask = task
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win == null) {
+      return
     }
-    const windowWidth = 300;
-    const windowHeight = 200;
-    const display = screen.getPrimaryDisplay();
-    const screenWidth = display.workAreaSize.width;
-    const screenHeight = display.workAreaSize.height;
-    const x = screenWidth - windowWidth;
-    const y = screenHeight - windowHeight;
-    win.setBounds({ x: x, y: y, width: windowWidth, height: windowHeight });
-    win.setAlwaysOnTop(true,"screen-saver");
+    const windowWidth = 300
+    const windowHeight = 200
+    const display = screen.getPrimaryDisplay()
+    const screenWidth = display.workAreaSize.width
+    const screenHeight = display.workAreaSize.height
+    const x = screenWidth - windowWidth
+    const y = screenHeight - windowHeight
+    win.setBounds({ x: x, y: y, width: windowWidth, height: windowHeight })
+    win.setAlwaysOnTop(true, 'screen-saver')
 
-    if (focusInterval) clearInterval(focusInterval);
+    if (focusInterval) clearInterval(focusInterval)
 
     focusInterval = setInterval(async () => {
-      console.log("Taking a screenshot...");
+      console.log('Taking a screenshot...')
 
       const sources = await desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: { width: 1920, height: 1080 }
-      });
+        types: ['screen'],
+        thumbnailSize: { width: 1920, height: 1080 }
+      })
 
-      const primarySource = sources[0];
+      const primarySource = sources[0]
 
       if (primarySource) {
-        const imageBase64 = primarySource.thumbnail.toDataURL();
+        const imageBase64 = primarySource.thumbnail.toDataURL()
 
         try {
           const response = await client.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: 'gpt-4o-mini',
             messages: [
               {
-                role: "user",
+                role: 'user',
                 content: [
-                  { type: "text", text: `The user wants to focus on: "${currentTask}". Is the screen content consistent with this task? Reply YES or NO` },
                   {
-                    type: "image_url",
-                    image_url: {
-                      url: imageBase64, // Pass the base64 string here
-                    },
+                    type: 'text',
+                    text: `The user wants to focus on: "${currentTask}". Is the screen content consistent with this task? Reply YES or NO`
                   },
-                ],
-              },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: imageBase64 // Pass the base64 string here
+                    }
+                  }
+                ]
+              }
             ],
-            max_tokens: 10, // We only need a short YES/NO
-          });
-        
-          const gpt_response = response.choices[0].message.content;
-          console.log("AI Verdict:", gpt_response);
+            max_tokens: 10 // We only need a short YES/NO
+          })
 
-          if(gpt_response?.toUpperCase().includes("NO"))
-            win.setKiosk(true);
-            win.setAlwaysOnTop(true,"screen-saver");
-            win.webContents.send('lock-screen-trigger');
-        
+          const gpt_response = response.choices[0].message.content
+          console.log('AI Verdict:', gpt_response)
+
+          if (gpt_response?.toUpperCase().includes('NO')) win.setKiosk(true)
+          win.setAlwaysOnTop(true, 'screen-saver')
+          win.webContents.send('lock-screen-trigger')
         } catch (error) {
-          console.error("OpenAI messed something up", error);
+          console.error('OpenAI messed something up', error)
         }
 
-        console.log("Yessir we screengrabbed, Len is", imageBase64.length);
+        console.log('Yessir we screengrabbed, Len is', imageBase64.length)
       }
+    }, 30000)
+  })
 
-      
+  ipcMain.on('end-focus-mode', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
 
-    }, 30000);
-
-
-
-
-  });
-
-  ipcMain.on('end-focus-mode',(event) =>{
-    const win = BrowserWindow.fromWebContents(event.sender);
-    if (!win) return;
-
-    const width = 900;
-    const height = 670;
-    const display = screen.getPrimaryDisplay();
-    const { width: screenWidth, height: screenHeight } = display.workAreaSize;
+    const width = 900
+    const height = 670
+    const display = screen.getPrimaryDisplay()
+    const { width: screenWidth, height: screenHeight } = display.workAreaSize
 
     // Calculate center position
-    const x = Math.round((screenWidth - width) / 2);
-    const y = Math.round((screenHeight - height) / 2);
+    const x = Math.round((screenWidth - width) / 2)
+    const y = Math.round((screenHeight - height) / 2)
 
-    win.setBounds({ x, y, width, height });
-    win.setAlwaysOnTop(false);
-    win.center();
+    win.setBounds({ x, y, width, height })
+    win.setAlwaysOnTop(false)
+    win.center()
 
-    if (focusInterval){
-      clearInterval(focusInterval);
-      focusInterval = null;
+    if (focusInterval) {
+      clearInterval(focusInterval)
+      focusInterval = null
     }
-
-
-  });
+  })
 
   createWindow()
 
