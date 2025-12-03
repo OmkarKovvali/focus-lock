@@ -46,6 +46,16 @@ function App(): React.JSX.Element {
     }
   }, [])
 
+  useEffect(() => {
+    window.electron.ipcRenderer.on('unlock-screen-trigger', () => {
+      setIsLocked(false)
+      setIsFocusing(true)
+    })
+    return () => {
+      //do i need cleanup here?
+    }
+  }, [])
+
   const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60

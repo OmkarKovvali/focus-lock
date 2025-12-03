@@ -3,3 +3,4 @@ uvicorn
 fastmcp
 requests
 starlette
+python-dotenv

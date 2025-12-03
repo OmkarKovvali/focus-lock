@@ -8,6 +8,7 @@ import 'dotenv/config'
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 let focusInterval: NodeJS.Timeout | null = null
+let pollInterval: NodeJS.Timeout | null = null
 
 function createWindow(): void {
   // Create the browser window.
@@ -78,7 +79,9 @@ app.whenReady().then(() => {
     win.setBounds({ x: x, y: y, width: windowWidth, height: windowHeight })
     win.setAlwaysOnTop(true, 'screen-saver')
 
-    if (focusInterval) clearInterval(focusInterval)
+    if (focusInterval){ 
+      clearInterval(focusInterval)
+    }
 
     focusInterval = setInterval(async () => {
       console.log('Taking a screenshot...')
@@ -113,7 +116,7 @@ app.whenReady().then(() => {
                 ]
               }
             ],
-            max_tokens: 10 // We only need a short YES/NO
+            max_tokens: 10
           })
 
           const gpt_response = response.choices[0].message.content
@@ -123,6 +126,33 @@ app.whenReady().then(() => {
             win.setKiosk(true)
             win.setAlwaysOnTop(true, 'screen-saver')
             win.webContents.send('lock-screen-trigger')
+            if(focusInterval){
+              clearInterval(focusInterval)
+            }
+
+            fetch('http://127.0.0.1:8000/punish',{method:'POST'})
+              .then(res => console.log("Report send via judge server"))
+              .catch(err => console.error("Not able to report to judge: ",err)) 
+            
+            if(pollInterval){
+              clearInterval(pollInterval)
+            }
+            pollInterval = setInterval(async () =>{
+              const poll_response = await fetch('http://127.0.0.1:8000/status',{method:'GET'})
+              const poll_data = await poll_response.json()
+              if(!poll_data.locked){
+                win.setKiosk(false)
+                win.setAlwaysOnTop(false)
+                win.webContents.send('unlock-screen-trigger')
+                if(pollInterval){
+                  clearInterval(pollInterval)
+                }
+
+
+              }
+
+
+            },1000)
           }
         } catch (error) {
           console.error('OpenAI messed something up', error)
