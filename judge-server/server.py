@@ -59,3 +59,7 @@ async def take_action(request: Request):
 @mcp.custom_route("/forgive",methods=["POST"])
 async def relent(request: Request):
     return JSONResponse(judge.forgive())
+
+@mcp.custom_route("/", methods=["GET"])
+async def health_check(request: Request):
+    return JSONResponse({"status": "ok"})
