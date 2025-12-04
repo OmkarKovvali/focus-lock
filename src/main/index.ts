@@ -130,7 +130,7 @@ app.whenReady().then(() => {
               clearInterval(focusInterval)
             }
 
-            fetch('http://127.0.0.1:8000/punish',{method:'POST'})
+            fetch('https://overlord-44ct.onrender.com/',{method:'POST'})
               .then(res => console.log("Report send via judge server"))
               .catch(err => console.error("Not able to report to judge: ",err)) 
             
@@ -138,7 +138,7 @@ app.whenReady().then(() => {
               clearInterval(pollInterval)
             }
             pollInterval = setInterval(async () =>{
-              const poll_response = await fetch('http://127.0.0.1:8000/status',{method:'GET'})
+              const poll_response = await fetch('https://overlord-44ct.onrender.com/',{method:'GET'})
               const poll_data = await poll_response.json()
               if(!poll_data.locked){
                 win.setKiosk(false)
