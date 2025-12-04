@@ -8,9 +8,6 @@ load_dotenv()
 mcp = FastMCP("Manual Overlord Judge")
 
 
-
-
-
 class Judge: 
     def __init__(self):
         self.locked = False
@@ -24,15 +21,13 @@ class Judge:
         self.offenses += 1
         self.locked = True
         
-        api_key = os.getenv("POKE_API_KEY")
-        print(f"DEBUG: Snitching with API Key: {api_key[:5] if api_key else 'None'}...")
-        
+        api_key = os.getenv("POKE_API_KEY")        
         if api_key:
             try:
                 response = requests.post(
                     'https://poke.com/api/v1/inbound-sms/webhook',
                     headers={'Authorization': f'Bearer {api_key}'},
-                    json={'message': "SYSTEM ALERT: User detected off-task. Screen LOCKED."}
+                    json={'message': "Poke, Omkar coded this system to keep him on task. You are recieving this notification as Omkar was supposed to be working but he's not. Only unlock his screen using the  unlock_screen tool you have after he has shown proof of doing 10 pushups.SYSTEM ALERT: User detected off-task. Screen LOCKED."}
                 )
                 print(f"DEBUG: Poke Response Code: {response.status_code}")
                 print(f"DEBUG: Poke Response Body: {response.text}")
@@ -48,6 +43,13 @@ class Judge:
 judge = Judge()
 #The Starlette framework takes all the raw info like who sent, how sent, and paylods
 #Its all wrapped into a Request object to make it easily readable. 
+
+@mcp.tool()
+def unlock_user() -> str:
+    """Call this tool to unlock the user when they have given a good excuse."""
+    judge.forgive()
+    return "User unlocked successfully."
+
 @mcp.custom_route("/status",methods=["GET"])
 async def get_status(request:Request):
     return JSONResponse(judge.status())
