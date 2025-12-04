@@ -131,7 +131,7 @@ app.whenReady().then(() => {
             }
 
             fetch('https://overlord-44ct.onrender.com/punish',{method:'POST'})
-              .then(res => console.log("Report send via judge server"))
+              .then( () => console.log("Report send via judge server"))
               .catch(err => console.error("Not able to report to judge: ",err)) 
             
             if(pollInterval){
