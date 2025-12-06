@@ -27,7 +27,7 @@ class Judge:
                 response = requests.post(
                     'https://poke.com/api/v1/inbound-sms/webhook',
                     headers={'Authorization': f'Bearer {api_key}'},
-                    json={'message': "Poke, Omkar coded this system to keep him on task. You are recieving this notification as Omkar was supposed to be working but he's not. Only unlock his screen using the  unlock_screen tool you have after he has shown proof of doing 10 pushups.SYSTEM ALERT: User detected off-task. Screen LOCKED."}
+                    json={'message': "Poke,Omkar coded this system to keep him on task. You are recieving this notification he was to be working but he's not. Only unlock his screen using the  unlock_screen tool you have after he has shown proof of doing 10 pushups."}
                 )
                 print(f"DEBUG: Poke Response Code: {response.status_code}")
                 print(f"DEBUG: Poke Response Body: {response.text}")
