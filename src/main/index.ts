@@ -96,6 +96,11 @@ app.whenReady().then(() => {
       if (primarySource) {
         const imageBase64 = primarySource.thumbnail.toDataURL()
 
+        if(imageBase64.length < 1000){
+          console.warn('Screenshot is messed up, check your permissions!')
+          return
+        }
+
         try {
           const response = await client.chat.completions.create({
             model: 'gpt-4o-mini',
@@ -126,9 +131,6 @@ app.whenReady().then(() => {
             win.setKiosk(true)
             win.setAlwaysOnTop(true, 'screen-saver')
             win.webContents.send('lock-screen-trigger')
-            if(focusInterval){
-              clearInterval(focusInterval)
-            }
 
             fetch('https://overlord-44ct.onrender.com/punish',{method:'POST'})
               .then( () => console.log("Report send via judge server"))
@@ -138,17 +140,20 @@ app.whenReady().then(() => {
               clearInterval(pollInterval)
             }
             pollInterval = setInterval(async () =>{
-              const poll_response = await fetch('https://overlord-44ct.onrender.com/status',{method:'GET'})
-              const poll_data = await poll_response.json()
-              if(!poll_data.locked){
-                win.setKiosk(false)
-                win.setAlwaysOnTop(false)
-                win.webContents.send('unlock-screen-trigger')
-                if(pollInterval){
-                  clearInterval(pollInterval)
+              try{
+                const poll_response = await fetch('https://overlord-44ct.onrender.com/status',{method:'GET'})
+                const poll_data = await poll_response.json()
+                if(!poll_data.locked){
+                  win.setKiosk(false)
+                  win.setAlwaysOnTop(false)
+                  win.webContents.send('unlock-screen-trigger')
+                  if(pollInterval){
+                    clearInterval(pollInterval)
+                  }
                 }
-
-
+              }
+              catch(error){
+                console.error("Polling failed:",error)
               }
 
 

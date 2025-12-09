@@ -49,10 +49,13 @@ function App(): React.JSX.Element {
   useEffect(() => {
     window.electron.ipcRenderer.on('unlock-screen-trigger', () => {
       setIsLocked(false)
-      setIsFocusing(true)
+      setIsFocusing(false)
+      setTimeLeft(0)
+      window.electron.ipcRenderer.send('end-focus-mode')
     })
     return () => {
       //do i need cleanup here?
+      window.electron.ipcRenderer.removeAllListeners('unlock-screen-trigger')
     }
   }, [])
 
