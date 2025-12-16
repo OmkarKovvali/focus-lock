@@ -14,11 +14,12 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
     console.log("Focus mode stopped, aborting check.");
     return;
   }
-
+  console.log("Starting getSources")
   const sources = await desktopCapturer.getSources({
     types: ['screen'],
     thumbnailSize: { width: 1920, height: 1080 }
   })
+  console.log("Got sources")
 
   const primarySource = sources[0]
 
@@ -84,12 +85,12 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
         } catch (error) {
           console.error('OpenAI messed something up', error)
         }
-        return;
-      }
 
-      if (isFocusModeActive) {
-        setTimeout(() => runFocusCheck(window, task), 30000);
-      }
+        if (isFocusModeActive) {
+          console.log("Scheduling next")
+          setTimeout(() => runFocusCheck(window, task), 30000);
+        }
+  }    
 
   
 }
