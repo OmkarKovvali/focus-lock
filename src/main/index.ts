@@ -2,10 +2,8 @@ import { app, shell, screen, BrowserWindow, ipcMain, desktopCapturer } from 'ele
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import OpenAI from 'openai'
 import 'dotenv/config'
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
 let pollInterval: NodeJS.Timeout | null = null
 
@@ -32,31 +30,21 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
       return
     }
 
-    try {
-      const response = await client.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'text',
-                text: `The user wants to focus on: "${task}". Is the screen content consistent with this task? Reply YES or NO`
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: imageBase64 // Pass the base64 string here
-                }
-              }
-            ]
-          }
-        ],
-        max_tokens: 10
+    try{
+      const response = await fetch('https://overlord-44ct.onrender.com/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          task: task,
+          image: imageBase64
+        })
       })
 
-      const gpt_response = response.choices[0].message.content
+      const data = await response.json()
+      const gpt_response = data.verdict // Get the verdict from Python
+      
       console.log('AI Verdict:', gpt_response)
+
       if (gpt_response?.toUpperCase().includes('NO')) {
         isFocusModeActive = false;
         window.setKiosk(true)

@@ -4,6 +4,7 @@ from fastmcp import FastMCP
 import requests
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 load_dotenv()
 mcp = FastMCP("Manual Overlord Judge")
 
@@ -27,7 +28,7 @@ class Judge:
                 response = requests.post(
                     'https://poke.com/api/v1/inbound-sms/webhook',
                     headers={'Authorization': f'Bearer {api_key}'},
-                    json={'message': "Poke,Omkar coded this system to keep him on task. You are recieving this notification he was to be working but he's not. Only unlock his screen using the  unlock_screen tool you have after he has shown proof of doing 10 pushups."}
+                    json={'message': "Poke, Omkar coded this system to keep him on task. You are recieving this notification he was to be working but he's not. Only unlock his screen using the unlock_screen tool you have after they have texted their ex. you need proof that its actually their ex."}
                 )
                 print(f"DEBUG: Poke Response Code: {response.status_code}")
                 print(f"DEBUG: Poke Response Body: {response.text}")
@@ -65,3 +66,44 @@ async def relent(request: Request):
 @mcp.custom_route("/", methods=["GET"])
 async def health_check(request: Request):
     return JSONResponse({"status": "ok"})
+
+@mcp.custom_route("/verify", methods=["POST"])
+async def verify_focus(request: Request):
+    try:
+        data = await request.json()
+        task = data.get("task")
+        image_base64 = data.get("image")
+        
+        if not task or not image_base64:
+            return JSONResponse({"error": "Missing task or image"}, status_code=400)
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": f'The user wants to focus on: "{task}". Is the screen content consistent with this task? Reply YES or NO'
+                        },
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": image_base64
+                            }
+                        }
+                    ]
+                }
+            ],
+            max_tokens=10
+        )
+        
+        verdict = response.choices[0].message.content
+        print(f"DEBUG: AI Verdict for '{task}': {verdict}")
+        
+        return JSONResponse({"verdict": verdict})
+        
+    except Exception as e:
+        print("Error verifying focus:", e)
+        return JSONResponse({"error": str(e)}, status_code=500)
