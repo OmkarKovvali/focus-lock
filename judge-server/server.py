@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from openai import OpenAI
 load_dotenv()
 mcp = FastMCP("Manual Overlord Judge")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 class Judge: 
