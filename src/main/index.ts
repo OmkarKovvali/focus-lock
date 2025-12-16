@@ -7,8 +7,104 @@ import 'dotenv/config'
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-let focusInterval: NodeJS.Timeout | null = null
 let pollInterval: NodeJS.Timeout | null = null
+
+let isFocusModeActive = false;
+
+async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
+  if (!isFocusModeActive) {
+    console.log("Focus mode stopped, aborting check.");
+    return;
+  }
+
+  const sources = await desktopCapturer.getSources({
+    types: ['screen'],
+    thumbnailSize: { width: 1920, height: 1080 }
+  })
+
+  const primarySource = sources[0]
+
+  if (primarySource) {
+    const imageBase64 = primarySource.thumbnail.toDataURL()
+
+    if (imageBase64.length < 1000) {
+      console.warn('Screenshot is messed up, check your permissions!')
+      return
+    }
+
+    try {
+      const response = await client.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: `The user wants to focus on: "${task}". Is the screen content consistent with this task? Reply YES or NO`
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: imageBase64 // Pass the base64 string here
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 10
+      })
+
+      const gpt_response = response.choices[0].message.content
+      console.log('AI Verdict:', gpt_response)
+      if (gpt_response?.toUpperCase().includes('NO')) {
+        isFocusModeActive = false;
+        window.setKiosk(true)
+        window.setAlwaysOnTop(true, 'screen-saver')
+        window.webContents.send('lock-screen-trigger')
+
+        fetch('https://overlord-44ct.onrender.com/punish', { method: 'POST' })
+              .then(() => console.log('Report send via judge server'))
+              .catch((err) => console.error('Not able to report to judge: ', err))
+
+            if (pollInterval) {
+              clearInterval(pollInterval)
+            }
+            pollInterval = setInterval(async () => {
+              try {
+                const poll_response = await fetch('https://overlord-44ct.onrender.com/status', {
+                  method: 'GET'
+                })
+                const poll_data = await poll_response.json()
+                if (!poll_data.locked) {
+                  window.setKiosk(false)
+                  window.setAlwaysOnTop(false)
+                  
+                  setTimeout(() => {
+                    window.webContents.send('unlock-screen-trigger')
+                  },500)
+
+                  if (pollInterval) {
+                    clearInterval(pollInterval)
+                  }
+                }
+              } catch (error) {
+                console.error('Polling failed:', error)
+              }
+            }, 1000)
+          }
+        } catch (error) {
+          console.error('OpenAI messed something up', error)
+        }
+        return;
+      }
+
+      if (isFocusModeActive) {
+        setTimeout(() => runFocusCheck(window, task), 30000);
+      }
+
+  
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -78,94 +174,10 @@ app.whenReady().then(() => {
     const y = screenHeight - windowHeight
     win.setBounds({ x: x, y: y, width: windowWidth, height: windowHeight })
     win.setAlwaysOnTop(true, 'screen-saver')
+    win.setVisibleOnAllWorkspaces(true,{visibleOnFullScreen: true})
 
-    if (focusInterval){ 
-      clearInterval(focusInterval)
-    }
-
-    focusInterval = setInterval(async () => {
-      console.log('Taking a screenshot...')
-
-      const sources = await desktopCapturer.getSources({
-        types: ['screen'],
-        thumbnailSize: { width: 1920, height: 1080 }
-      })
-
-      const primarySource = sources[0]
-
-      if (primarySource) {
-        const imageBase64 = primarySource.thumbnail.toDataURL()
-
-        if(imageBase64.length < 1000){
-          console.warn('Screenshot is messed up, check your permissions!')
-          return
-        }
-
-        try {
-          const response = await client.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-              {
-                role: 'user',
-                content: [
-                  {
-                    type: 'text',
-                    text: `The user wants to focus on: "${currentTask}". Is the screen content consistent with this task? Reply YES or NO`
-                  },
-                  {
-                    type: 'image_url',
-                    image_url: {
-                      url: imageBase64 // Pass the base64 string here
-                    }
-                  }
-                ]
-              }
-            ],
-            max_tokens: 10
-          })
-
-          const gpt_response = response.choices[0].message.content
-          console.log('AI Verdict:', gpt_response)
-
-          if (gpt_response?.toUpperCase().includes('NO')){ 
-            win.setKiosk(true)
-            win.setAlwaysOnTop(true, 'screen-saver')
-            win.webContents.send('lock-screen-trigger')
-
-            fetch('https://overlord-44ct.onrender.com/punish',{method:'POST'})
-              .then( () => console.log("Report send via judge server"))
-              .catch(err => console.error("Not able to report to judge: ",err)) 
-            
-            if(pollInterval){
-              clearInterval(pollInterval)
-            }
-            pollInterval = setInterval(async () =>{
-              try{
-                const poll_response = await fetch('https://overlord-44ct.onrender.com/status',{method:'GET'})
-                const poll_data = await poll_response.json()
-                if(!poll_data.locked){
-                  win.setKiosk(false)
-                  win.setAlwaysOnTop(false)
-                  win.webContents.send('unlock-screen-trigger')
-                  if(pollInterval){
-                    clearInterval(pollInterval)
-                  }
-                }
-              }
-              catch(error){
-                console.error("Polling failed:",error)
-              }
-
-
-            },1000)
-          }
-        } catch (error) {
-          console.error('OpenAI messed something up', error)
-        }
-
-        console.log('Yessir we screengrabbed, Len is', imageBase64.length)
-      }
-    }, 30000)
+    isFocusModeActive = true
+    runFocusCheck(win,currentTask)
   })
 
   ipcMain.on('end-focus-mode', (event) => {
@@ -183,12 +195,13 @@ app.whenReady().then(() => {
 
     win.setBounds({ x, y, width, height })
     win.setAlwaysOnTop(false)
+    win.setVisibleOnAllWorkspaces(false)
     win.center()
 
-    if (focusInterval) {
-      clearInterval(focusInterval)
-      focusInterval = null
-    }
+    win.show()
+    win.focus()
+
+    isFocusModeActive = false
   })
 
   createWindow()
@@ -196,7 +209,12 @@ app.whenReady().then(() => {
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    const allWindows = BrowserWindow.getAllWindows()
+    if (allWindows.length === 0) {
+      createWindow()
+    } else {
+      allWindows[0].show()
+    }
   })
 })
 

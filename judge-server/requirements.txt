@@ -4,3 +4,4 @@ fastmcp
 requests
 starlette
 python-dotenv
+openai
