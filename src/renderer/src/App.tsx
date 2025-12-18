@@ -7,6 +7,15 @@ function App(): React.JSX.Element {
   const [isFocusing, setIsFocusing] = useState<boolean>(false)
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [isLocked, setIsLocked] = useState<boolean>(false)
+  const [showSettings, setShowSettings] = useState<boolean>(false)
+  const [serverUrl, setServerUrl] = useState<string>('')
+
+  const handleSaveSettings = (): void => {
+    window.electron.ipcRenderer.send('save-settings',serverUrl)
+    setShowSettings(false)
+    console.log('Settings saved lfg ', serverUrl)
+  }
+
 
   const handleSubmit = (e: React.FormEvent): void => {
     e.preventDefault()
@@ -126,7 +135,7 @@ function App(): React.JSX.Element {
 
   return (
     <>
-      <h1>MANUAL_OVERLORD_V1</h1>
+      <h1>OVERLORD</h1>
 
       {isFocusing ? (
         <div style={{ width: '100%', textAlign: 'center' }}>
@@ -138,6 +147,10 @@ function App(): React.JSX.Element {
           <button onClick={handleExit} style={{ borderColor: '#D93A3A', color: '#D93A3A' }}>
             ABORT SESSION
           </button>
+                    
+          
+
+
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
@@ -165,9 +178,45 @@ function App(): React.JSX.Element {
           <button type="submit" style={{ marginTop: '2rem' }}>
             INITIATE PROTOCOL
           </button>
+
+          <button
+          type="button"
+      onClick={() => setShowSettings(true)}
+      style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#EDEDED' }}
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" />
+      </svg>
+    </button>
         </form>
       )}
       <Versions />
+
+      {showSettings && (
+      <div style={{
+        position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+        backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+      }}>
+        <div style={{ background: '#1a1a1a', padding: '2rem', borderRadius: '8px', width: '400px', border: '1px solid #333' }}>
+          <h3>Settings</h3>
+          <label style={{ display: 'block', margin: '1rem 0' }}>
+            Judge Server URL:
+            <input
+              type="text"
+              value={serverUrl}
+              onChange={(e) => setServerUrl(e.target.value)}
+              placeholder="https://..."
+              style={{ width: '100%', marginTop: '0.5rem', padding: '0.5rem' }}
+            />
+          </label>
+          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+            <button onClick={() => setShowSettings(false)} style={{ background: 'transparent', border: '1px solid #666' }}>Cancel</button>
+            <button onClick={handleSaveSettings}>Save</button>
+          </div>
+        </div>
+      </div>
+    )}
     </>
   )
 }

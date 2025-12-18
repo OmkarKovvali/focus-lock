@@ -5,7 +5,7 @@ import 'dotenv/config'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ exclude: ['electron-store'] })],
 
     define: {
       'process.env.OPENAI_API_KEY': JSON.stringify(process.env.OPENAI_API_KEY)

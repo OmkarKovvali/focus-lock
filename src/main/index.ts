@@ -3,6 +3,9 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import 'dotenv/config'
+import Store from 'electron-store';
+
+const store = new Store();
 
 
 let pollInterval: NodeJS.Timeout | null = null
@@ -10,8 +13,10 @@ let pollInterval: NodeJS.Timeout | null = null
 let isFocusModeActive = false;
 
 async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
+
+  const serverUrl = store.get('serverUrl') as string
   
-  const scheduleNextRun = () => {
+  const scheduleNextRun = (): void => {
     if (isFocusModeActive) {
       console.log("Scheduling next check in 30s...");
       setTimeout(() => runFocusCheck(window, task), 30000);
@@ -47,7 +52,7 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
     }
 
     try{
-      const response = await fetch('https://overlord-44ct.onrender.com/verify', {
+      const response = await fetch(`${serverUrl}/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -67,7 +72,7 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
         window.setAlwaysOnTop(true, 'screen-saver')
         window.webContents.send('lock-screen-trigger')
 
-        fetch('https://overlord-44ct.onrender.com/punish', { method: 'POST' })
+        fetch(`${serverUrl}/punish`, { method: 'POST' })
               .then(() => console.log('Report send via judge server'))
               .catch((err) => console.error('Not able to report to judge: ', err))
 
@@ -76,7 +81,7 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
             }
             pollInterval = setInterval(async () => {
               try {
-                const poll_response = await fetch('https://overlord-44ct.onrender.com/status', {
+                const poll_response = await fetch(`${serverUrl}/status`, {
                   method: 'GET'
                 })
                 const poll_data = await poll_response.json()
@@ -122,6 +127,7 @@ function createWindow(): void {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      spellcheck: false,
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     }
@@ -161,6 +167,11 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
+
+  ipcMain.on('save-settings', (event, url) => {
+    console.log('Saving server URL:', url);
+    store.set('serverUrl', url);
+  });
 
   ipcMain.on('start-focus-mode', (event, duration, task) => {
     console.log('start fsoocus mode signal activated yuhh')
