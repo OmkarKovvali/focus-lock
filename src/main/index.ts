@@ -14,7 +14,8 @@ let isFocusModeActive = false;
 
 async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
 
-  const serverUrl = store.get('serverUrl') as string
+  const rawUrl = store.get('serverUrl') as string
+  const serverUrl = rawUrl.replace(/\/$/, '');
   
   const scheduleNextRun = (): void => {
     if (isFocusModeActive) {
@@ -174,7 +175,7 @@ app.whenReady().then(() => {
   });
 
   ipcMain.on('start-focus-mode', (event, duration, task) => {
-    console.log('start fsoocus mode signal activated yuhh')
+    console.log('start focus mode signal activated yuhh')
     console.log('Start focus mode:', duration, task)
     const currentTask = task
     const win = BrowserWindow.fromWebContents(event.sender)
