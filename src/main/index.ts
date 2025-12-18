@@ -10,6 +10,14 @@ let pollInterval: NodeJS.Timeout | null = null
 let isFocusModeActive = false;
 
 async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
+  
+  const scheduleNextRun = () => {
+    if (isFocusModeActive) {
+      console.log("Scheduling next check in 30s...");
+      setTimeout(() => runFocusCheck(window, task), 30000);
+    }
+  };
+  
   if (!isFocusModeActive) {
     console.log("Focus mode stopped, aborting check.");
     return;
@@ -23,12 +31,19 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
 
   const primarySource = sources[0]
 
+  if (!primarySource) {
+    console.warn("No primary source found. Retrying...");
+    scheduleNextRun();
+    return;
+  }
+
   if (primarySource) {
     const imageBase64 = primarySource.thumbnail.toDataURL()
 
     if (imageBase64.length < 1000) {
       console.warn('Screenshot is messed up, check your permissions!')
-      return
+      scheduleNextRun();
+      return;
     }
 
     try{
@@ -80,20 +95,21 @@ async function runFocusCheck(window:BrowserWindow,task:string): Promise<void>{
               } catch (error) {
                 console.error('Polling failed:', error)
               }
-            }, 1000)
+            }, 1000);
+
+            return;
           }
         } catch (error) {
           console.error('OpenAI messed something up', error)
         }
 
-        if (isFocusModeActive) {
-          console.log("Scheduling next")
-          setTimeout(() => runFocusCheck(window, task), 30000);
-        }
+        scheduleNextRun();
+        
   }    
 
   
 }
+
 
 function createWindow(): void {
   // Create the browser window.
