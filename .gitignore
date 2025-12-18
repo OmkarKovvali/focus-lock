@@ -6,3 +6,4 @@ out
 *.log*
 .env
 __pycache__/
+.cursorrules
