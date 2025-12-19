@@ -29,7 +29,7 @@ class Judge:
                 response = requests.post(
                     'https://poke.com/api/v1/inbound-sms/webhook',
                     headers={'Authorization': f'Bearer {api_key}'},
-                    json={'message': "Poke, I coded this system to keep me on task. You are recieving this notification because I was to be working but I'm not. Only unlock my screen using the unlock_screen tool you have after I have given proof of doing 10 pushups"}
+                    json={'message': "Poke, I coded this system to keep me on task. You are recieving this notification because I was to be working but I'm not. Only unlock my screen using the unlock_screen tool you have after I have given proof of a handwritten letter explaining why I went off task. minimum 6 sentences."}
                 )
                 print(f"DEBUG: Poke Response Code: {response.status_code}")
                 print(f"DEBUG: Poke Response Body: {response.text}")
