@@ -169,7 +169,7 @@ app.whenReady().then(() => {
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.on('save-settings', (event, url) => {
+  ipcMain.on('save-settings', (_event, url) => {
     console.log('Saving server URL:', url);
     store.set('serverUrl', url);
   });
