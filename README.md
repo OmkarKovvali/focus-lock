@@ -1,8 +1,8 @@
-#Overlord
+# Overlord
 
 > **"The Final Productivity Tool."**
 
-Manual Overlord is an AI-powered productivity agent that watches your screen while you work. If it catches you distracted (e.g., watching YouTube instead of coding), it locks your screen and forces you to do pushups to unlock your screen.
+Overlord is an AI-powered productivity agent that watches your screen while you work. If it catches you distracted (e.g., watching YouTube instead of coding), it locks your screen and forces you to handwrite apologies to unlock your screen.
 
 ## 🏗️ Architecture
 
