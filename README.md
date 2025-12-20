@@ -9,7 +9,7 @@ Overlord is an AI-powered productivity agent that watches your screen while you 
 This is a **Hybrid Agentic System** composed of two parts:
 
 1.  **Electron App:** A desktop application that captures screenshots, handles the "Lock Screen" Kiosk mode, and polls for forgiveness.
-2.  **Python Judge Server:** A FastAPI/MCP server that holds your API keys, analyzes screenshots using OpenAI (GPT-4o), and triggers punishments (SMS via Poke API).
+2.  **Python  Server:** A FastAPI/MCP server that holds your API keys, analyzes screenshots using OpenAI (GPT-4o), and triggers punishments (SMS via Poke API).
 
 This separation ensures your API keys stay secure on your server.
 
@@ -25,9 +25,9 @@ To run Manual Overlord, you need to set up both the **Server**  and the **Client
 
 ---
 
-### Step 1: Set Up Judge Server on Render
+### Step 1: Set Up Server on Render
 
-Since the Electron app is built for distribution, the recommended way to run the Judge Server is by deploying it to **Render** (or any cloud provider).
+Since the Electron app is built for distribution, the recommended way to run the Python Server is by deploying it to **Render** (or any cloud provider).
 
 1.  **Fork/Clone this Repo:** Make sure you have your own copy of this repository on GitHub.
 2.  **Create a Render Service:**
