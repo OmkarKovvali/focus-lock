@@ -21,7 +21,7 @@ To run Manual Overlord, you need to set up both the **Server**  and the **Client
 *   Node.js (v18+)
 *   Python (v3.10+)
 *   An OpenAI API Key
-*   A Poke API Key for SMS punishments
+*   A Poke API Key for SMS punishments (visit poke.com!)
 
 ---
 
@@ -29,7 +29,7 @@ To run Manual Overlord, you need to set up both the **Server**  and the **Client
 
 Since the Electron app is built for distribution, the recommended way to run the Judge Server is by deploying it to **Render** (or any cloud provider).
 
-1.  **Fork/Push this Repo:** Make sure you have your own copy of this repository on GitHub.
+1.  **Fork/Clone this Repo:** Make sure you have your own copy of this repository on GitHub.
 2.  **Create a Render Service:**
     *   Go to [dashboard.render.com](https://dashboard.render.com).
     *   Click **New +** -> **Web Service**.
