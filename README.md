@@ -72,11 +72,11 @@ Since the Electron app is built for distribution, the recommended way to run the
 1.  **Enter a Directive:** Tell the Overlord what you are supposed to be doing (e.g., *"Writing the technical blog post"*).
 2.  **Set Duration:** How long do you need to focus? (e.g., 30 minutes).
 3.  **Start:** The window will shrink to the corner.
-4.  **Work:** Every 30 seconds, the Eye takes a screenshot.
+4.  **Work:** Every 30 seconds, a screen shot is taken to see if you are on task.
     *   **Verdict YES:** The timer continues.
     *   **Verdict NO:**
         *   Your screen gets **LOCKED** (Kiosk Mode).
-        *   A text is sent to your accountability partner (if configured).
-        *   You must wait for the "Agent" (or your friend) to unlock you via the server.
+        *   A text is sent to your phone, asking you to upload proof of a handwritten apology
+        *   You must wait for Poke to unlock you via the server.
 
 ---
